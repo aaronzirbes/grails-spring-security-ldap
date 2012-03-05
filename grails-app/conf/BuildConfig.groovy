@@ -3,6 +3,11 @@ grails.project.test.class.dir = 'target/test-classes'
 grails.project.test.reports.dir	= 'target/test-reports'
 grails.project.docs.output.dir = 'docs' // for the gh-pages branch
 
+grails.project.repos.umnNcs.url = "http://artifact.ncs.umn.edu/plugins-release-local"
+grails.project.repos.umnNcs.type = "maven"
+grails.project.repos.default = "umnNcs"
+grails.release.scm.enabled = false
+
 grails.project.dependency.resolution = {
 
 	inherits('global')
