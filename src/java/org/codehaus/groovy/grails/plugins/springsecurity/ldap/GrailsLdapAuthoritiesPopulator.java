@@ -17,6 +17,8 @@ package org.codehaus.groovy.grails.plugins.springsecurity.ldap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserDetailsService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.ldap.core.ContextSource;
@@ -35,6 +37,7 @@ public class GrailsLdapAuthoritiesPopulator extends DefaultLdapAuthoritiesPopula
 
 	private GrailsUserDetailsService _userDetailsService;
 	private Boolean _retrieveDatabaseRoles;
+	private static final Log logger = LogFactory.getLog(GrailsLdapAuthoritiesPopulator.class);
 
 	private String _rolePrefix = "ROLE_";
 	private String _roleStripPrefix;
@@ -64,43 +67,51 @@ public class GrailsLdapAuthoritiesPopulator extends DefaultLdapAuthoritiesPopula
 
 			if (_roleConvertDashes && newRole.getAuthority().indexOf('-') > -1) {
 				// replace dashes
+				logger.debug("converting dashes to underscores in authority:" + newRole.getAuthority());
 				newRole = new GrantedAuthorityImpl(newRole.getAuthority().replaceAll("-", "_"));
 			}
 
 			if (_roleToUpperCase && !newRole.getAuthority().toUpperCase().equals(newRole.getAuthority())) {
 				// convert to upper case
+				logger.debug("converting role to uppercase:" + newRole.getAuthority());
 				newRole = new GrantedAuthorityImpl(newRole.getAuthority().toUpperCase());
 			}
 
 			if (_roleStripPrefix != null) {
 				// strip prefix if found
 				String tempPrefix = _rolePrefix + _roleStripPrefix;
+				logger.debug("looking for prefix '" + _roleStripPrefix + "' to remove from from authority:" + newRole.getAuthority());
 				if (tempPrefix != null && tempPrefix.length() > 0 
 						&& newRole.getAuthority().indexOf(tempPrefix) == 0
 						&& newRole.getAuthority().length() > tempPrefix.length()) {
 					// replace dashes
+					logger.debug("removing prefix '" + _roleStripPrefix + "' from authority:" + newRole.getAuthority());
 					newRole = new GrantedAuthorityImpl(newRole.getAuthority().replace(tempPrefix, _rolePrefix).trim());
 				}
 			}
 
 			if (_roleStripSuffix != null) {
 				// strip suffix if found
+				logger.debug("looking for suffix '" + _roleStripSuffix + "' to remove from from authority:" + newRole.getAuthority());
 				if (_roleStripSuffix != null && _roleStripSuffix.length() > 0 
 						&& newRole.getAuthority().length() > _roleStripSuffix.length()
 						&& newRole.getAuthority().endsWith(_roleStripSuffix)) {
 					int roleLength = newRole.getAuthority().length();
 					int suffixLength = _roleStripSuffix.length();
+						logger.debug("removing suffix '" + _roleStripSuffix + "' from authority:" + newRole.getAuthority());
 						newRole = new GrantedAuthorityImpl(newRole.getAuthority().substring(0, roleLength - suffixLength).trim());
 				}
 			}
 
 			if (newRole.getAuthority().indexOf(' ') > -1) {
 				// replace spaces
+				logger.debug("removing spaces from authority:" + newRole.getAuthority());
 				newRole = new GrantedAuthorityImpl(newRole.getAuthority().replaceAll(" ", "_"));
 			}
 
 			while (newRole.getAuthority().indexOf("__") > -1) {
 				// replace __
+				logger.debug("removing double underscores from authority:" + newRole.getAuthority());
 				newRole = new GrantedAuthorityImpl(newRole.getAuthority().replaceAll("__", "_"));
 			}
 			return newRole;
